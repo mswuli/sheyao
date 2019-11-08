@@ -1,0 +1,576 @@
+<template>
+  <div>
+    <c-menu></c-menu>
+    <div class="inner-wrap">
+      <div class="register-content" v-model="registerBox">
+        <h2>会员注册</h2>
+
+        <div class="login-input">
+          <i class="iconfont icon-icon_home"></i>
+          <input type="text" placeholder="请输入公司全称" v-model="CompanyName">
+        </div>
+        <div class="login-input">
+          <i class="iconfont icon-user_name"></i>
+          <input type="text" placeholder="请输入联系人" v-model="Contacts">
+        </div>
+        <div class="login-input">
+          <i class="iconfont icon-tel_hollow"></i>
+          <input
+            placeholder="请输入手机号码"
+            v-model="Mobile"
+            type="txt"
+            @keydown="numberVf"
+            style="ime-mode:disabled"
+            onpaste="return false"
+          >
+        </div>
+        <div class="login-tips">
+          <p class="iconfont icon-wariness">审核通过后将为此号码开通管理员账号</p>
+        </div>
+        <div class="login-input">
+          <i class="iconfont icon-address"></i>
+          <Cascader :data="nationalData" @on-change="venue" trigger="hover"></Cascader>
+        </div>
+        <div class="login-input">
+          <i class="iconfont icon-password"></i>
+          <input type="password" placeholder="请输入密码" min v-model="Password">
+        </div>
+        <div class="login-input">
+          <i class="iconfont icon-password"></i>
+          <input type="password" placeholder="请确认密码" v-model="ConfirmPassword">
+        </div>
+
+        <div class="register-code">
+          <input type="text" placeholder="验证码" v-model="VerifyCode">
+          <span v-show="!show" class="count">{{count}} s</span>
+          <a @click="OutVerifyCode" v-show="show">获取验证码</a>
+        </div>
+        <p class="login-select">
+          <Checkbox v-model="single">已阅读并接受
+            <a @click="handleAgreement">《医药四方云平台用户协议》</a>
+          </Checkbox>
+        </p>
+        <div slot="footer" class="footer">
+          <Button type="success" size="large" long :loading="modal_loading" @click="Save">立即注册</Button>
+          <!-- <p>您已经注册？请点击 <a @click="handleLogin">会员登录</a></p> -->
+          <p>您已经注册？请点击
+            <a :href="loginUrl">会员登录</a>
+          </p>
+        </div>
+      </div>
+    </div>
+    <!-- 协议框 -->
+    <Modal v-model="agreementBox" width="1200" class="agreement-wrap">
+      <p slot="header">医药四方云平台协议</p>
+      <div class="agreement-content">
+        <p>欢迎阅读医药四方云（涉药运输服务平台，以下简称“平台”）所提供的协议内容。本平台是中国医药商业协会社会物流医药分会、深圳传世般若科技有限公司联合推出，由深圳传世般若科技有限公司提供技术支持与主体运营的医药社会物流信息平台。</p>
+        <p>请您认真阅读并充分理解本协议中各条款，包括服务对象、服务范围、服务承诺、服务说明、服务责任等条款内容，并选择是否同意本条款，以任何方式进入平台即视为您同意接受本协议。</p>
+        <p>平台有权对协议条款进行维护和修订，修订后的协议会替代原协议，并通过本平台进行公布。如您同意继续使用本平台的服务，则视为您已接受修改后的条款。</p>
+        <p>
+          <b>账号注册及使用规则：</b>
+        </p>
+        <p>账号注册资料包括但不限于您的账号名称、头像、密码、注册或更新账号时输入的所有信息。</p>
+        <p>（1） 您在注册账号时承诺遵守法律法规、社会主义制度、国家利益、公民合法权益、公共秩序、社会道德风尚和信息真实性等七条底线，不得在账号注册资料中出现违法和不良信息，且您保证在注册和使用账号时，不得提交、发布或传播以下信息：</p>
+        <p>
+          <span>（a）违反国家政策、法律法规的任何内容（信息）；</span>
+        </p>
+        <p>
+          <span>（b）违反国家规定的政治宣传或新闻信息；</span>
+        </p>
+        <p>
+          <span>（c）涉及国家秘密或安全的信息；</span>
+        </p>
+        <p>
+          <span>（d）封建迷信或淫秽、色情、下流的信息或教唆犯罪的信息；</span>
+        </p>
+        <p>
+          <span>（e）博彩有奖、赌博游戏；</span>
+        </p>
+        <p>
+          <span>（f）违反国家民族和宗教政策的信息；</span>
+        </p>
+        <p>
+          <span>（g）妨碍互联网运行安全的信息；</span>
+        </p>
+        <p>
+          <span>（h）侵害他人合法权益的信息；</span>
+        </p>
+        <p>
+          <span>（i）其他有损于社会秩序、社会治安、公共道德的信息或内容。</span>
+        </p>
+        <p>（2） 若您在注册、登录、使用账号头像、个人简介等账号信息资料存在违法和不良信息或包含有不正确、不真实信息的内容，平台有权采取通知限期改正、暂停使用、取消您资格等措施。对于冒用关联机构或社会名人登录、使用、填写账号名称、头像、个人简介的，科技有权取消该账号的使用，并向政府主管部门进行报告。</p>
+        <p>（3） 您应对注册的账号负责，您保证只有您本人可以使用您的账号，该账号不可转让、不可赠与、不可继承。</p>
+        <p>（4） 您对您注册的账号及密码进行的一切操作负完全的责任，且您同意对您的账号和密码进行妥善保管，对于因密码泄露所致的损失，由您自行承担。如您发现有他人冒用或盗用您的账号及密码或任何其他未经合法授权之情形时，应立即以有效方式通知平台，要求平台暂停相关服务。同时，您理平台对其的请求采取行动需要合理期限，在平台采取措施前，平台对已执行的指令及所导致的您的损失不承担任何责任。</p>
+        <p>（5） 您有权选择平台提供的服务内容，并获得平台提供的技术支持。</p>
+        <p>（6） 您保证您使用服务或通过服务发布内容时将遵从国家、地方法律法规、行业惯例和社会公共道德，并且不会利用服务进行存储、发布、传播本条第一项所约定的违法违规信息。 如您有违反以上承诺的行为，则此等行为导致的后果与平台无关。如有确切记录证明您违反上述承诺的，平台可以解除与您的服务合同关系并要求相应的赔偿。</p>
+        <p>（7） 您应遵守平台的所有其他规定和程序。您须对您在使用服务过程中的行为承担法律责任。您承担法律责任的形式包括但不限于：对受侵害者进行赔偿，以及因您的行为导致平台的任何损失，您应给予平台至少等额的赔偿。若您违反以上规定，平台有权作出独立判断立即暂停或终止对您提供部分或全部服务，包括冻结、取消您的账号的使用权限等措施。</p>
+        <p>（8） 对于您利用服务所发布的信息，平台保留依据国家相关法律法规对其进行关键词过滤的权利，如发现您发送内容明确存在违反国家相关法律法规的内容，平台有权作出包括但不限于劝阻、拦截、直至向有关公安部门举报等行为。</p>
+        <p>（9） 如果您通过服务进行经营或者非经营性活动需要获得国家有关部门许可或批准的，应当获得相关许可或批准后，方可开展相关经营或者非经营活动。</p>
+        <p>（10） 除经书面许可外，您不得修改、翻译、出版、改编、出租、许可或以其他方式传播或转让服务。也不得逆向工程、反编译或试图以其他方式发现服务的任何源代码。</p>
+        <p>（11） 您保证不得滥用服务，包括但不限于利用服务进行侵害科技或他人的知识产权或者合法利益的其他行为，不得利用服务向第三方提供与服务直接竞争的服务等。如平台发现您违反本条款的约定，有权根据情况采取相应的处理措施，包括但不限于立即终止服务、中止服务或删除相应信息等。如果第三方机构或个人对您提出质疑或投诉，平台将通知您，您有责任在规定时间内进行说明并出具证明材料，如您未能提供相反证据或您逾期未能反馈的，平台将采取包括但不限于立即终止服务、中止服务或删除相应信息等处理措施。因您未及时更新联系方式或联系方式不正确而致使未能联系到您的，亦视为您逾期未能反馈。</p>
+        <p>（12） 您了解平台无法保证其所提供的服务毫无瑕疵，但平台承诺不断提升服务质量及服务水平。所以您同意：即使平台提供的服务存在瑕疵，但上述瑕疵是当时行业技术水平所无法避免的，其将不被视为平台违约。您同意和平台一同合作解决上述瑕疵问题。</p>
+        <p>
+          <b>服务对象：</b>
+        </p>
+        <p>平台是面向医药生产企业、医药流通企业、第三方物流运输企业、各医疗管理机构及医药零售终端、政府监管部门而推出的实名制信息服务平台。因此，您必须是拥有国家规定的药品生产、药品经营、道路运输许可的经营机构。如不符合本项条件，请勿使用平台。平台可随时自行全权决定拒绝向任何人士提供平台服务。</p>
+        <p>
+          <b>服务范围：</b>
+        </p>
+        <p>（1） 为平台企业提供信息化解决方案，医药四方云平台系统；</p>
+        <p>（2） 为医药运输企业提供涉药运输标准咨询，助力运输企业达到涉药运输标准</p>
+        <p>（3） 企业资料及证照的录入功能，帮助企业梳理相关证照，对资料及证照的合法性及有效性进行把关；</p>
+        <p>（4） 平台打通供应链多环节多系统之间的信息壁垒，实现信息传递标准化、规范化，并可实现对供应链全程的单据、商品的追踪与追溯、可视化数据分析；</p>
+        <p>（5） 发布涉药运输相关政策、标准和具体要求，协助医药生产企业规范药品运输质量；</p>
+        <p>（6） 面向三方物流配送企业提供涉药运输标准评估和对三方物流配送企业能力进行提供复评，并提供综合评级，评级分为：5A、4A、3A、2A、A；</p>
+        <p>（7） 平台有权对不符合涉药运输的企业关闭账号，并提供后续系统服务；</p>
+        <p>
+          <b>服务承诺：</b>
+        </p>
+        <p>平台承诺，保证不对外公开或向第三方提供、出售、出租、分享和交易用户注册资料及用户在使用网络服务时存储在供应链平台的非公开内容，但可根据如下规定对用户的信息进行披露:(a) 根据有关的法律法规要求；(b) 执行本服务条款;(c) 事先获得用户的明确授权；(d) 按照相关政府主管部门的要求；</p>
+        <p>
+          <b>服务说明：</b>
+        </p>
+        <p>（1） 如您在本平台注册并使用，需要依照平台要求提供贵公司当前真实、准确、有效且完整的资料，并按照协议条款约束，及时更新公司及产品资质，保证当前的有效状态。若您提供有悖或不能完全展现当前状态的资料，平台有权怀疑、删除相关内容，并暂停（或终止）对您的服务。</p>
+        <p>（2） 用户需对其发布的信息负责，禁止发布误导性的、恶意的消息；不得利用本平台危害国家安全、泄露国家秘密；不得侵犯国家社会集体的和公民的合法权益；不得利用本平台制作和传播侵犯任何第三方权益的信息。如有以上情形发生，平台可将相关内容删除或暂停服务。</p>
+        <p>（3） 您可以下载本平台上显示的资料，但这些资料只限用于正当商业用途，不得用于任何侵权行为，无论是否在资料上明示，所有此类资料都是受到版权法的保护。在没有获得平台或各自的版权所有者明确的书面同意下，不得分发、修改、散布、再使用、再传递或使用本平台的内容用于任何商业用途。</p>
+        <p>（4） 用户需对注册并审核的账号和密码负责，如果用户账号（或密码）丢失或被盗，应该及时找回或者重新登记并重新设置密码，因用户账号及密码丢失而造成的损失，用户应自行承担责任。</p>
+        <p>（5） 运营方保留对用户提交的内容进行修改、不予发表、删除等权利。</p>
+        <p>
+          <b>服务责任：</b>
+        </p>
+        <p>（1） 本平台上关于使用者的产品（包括但不限于公司名称、联系人及联络信息，产品的描述和说明，相关图片等）的信息均由您自行提供，您应依法对提供的任何信息承担全部责任。平台对此类信息的准确性、完整性、合法性或真实性均不承担任何责任。此外，平台对任何使用或提供本平台信息的商业活动及其风险不承担任何责任。</p>
+        <p>（2） 对于因平台合理控制范围以外的不可抗力的因素造成的（包括自然灾害、物质短缺、战争、政府行为、通讯、设施设备故障等原因）致使平台延迟或者未能履约的后果，平台不应承担责任，但将尽可能地处理善后事宜，并努力减少因此而给用户造成的损失和影响。</p>
+        <p>（3） 平台对您使用平台、与本平台相关的任何内容、服务或其它链接至本平台的站点、内容均不作直接、间接、法定、约定的保证。</p>
+        <p>（4） 无论在任何原因下（包括但不限于疏忽原因），对您或任何人通过使用本平台上的信息或由本平台链接的信息，或其他与本平台链接的网站信息所导致的损失或损害（包括直接、间接、特别或后果性的损失或损害，例如收入或利润损失，电脑系统损坏或数据丢失等后果），责任均由使用者自行承担(包括但不限于疏忽责任)。</p>
+        <p>（5） 使用者对本平台的使用即表明同意承担浏览本平台的全部风险，平台对使用者在本平台存取资料所导致的任何直接、相关的、后果性的、间接的或金钱上的损失不承担任何责任。</p>
+        <p>（6） 同意使用之后，因您违反本协议，或因您违反了法律或侵害了第三方的权利，而使第三方对平台提出索赔要求，您必须赔偿给平台，使其免遭损失。</p>
+        <p>如您对以上协议内容有任何的疑问，欢迎与平台服务人员联系，我们会给予相应的解答和帮助。</p>
+      </div>
+      <div slot="footer">
+        <Button type="success" size="large" :loading="modal_loading" @click="loginAgree">同意并立即注册</Button>
+        <Button type="success" size="large" :loading="modal_loading" @click="loginDisagree">不同意</Button>
+      </div>
+    </Modal>
+  </div>
+</template>
+
+<script>
+import Cmenu from "./menu.vue";
+
+export default {
+  components: {
+    "c-menu": Cmenu
+  },
+  computed: {
+    RegisterUrl() {
+      return `${this.apiUrls.cs4pl.baseURL}`;
+    },
+    loginUrl() {
+      return `${this.apiUrls.loginUrl.baseURL}NavigateValue=${location.href}`;
+    }
+  },
+  data() {
+    const self = this;
+    return {
+      loginName: "",
+      loginPwd: "",
+      loginBox: false,
+      modal_loading: false,
+      single: false,
+      registerBox: false,
+      agreementBox: false,
+      CompanyName: "",
+      Contacts: "",
+      Mobile: "",
+      Password: "",
+      ConfirmPassword: "",
+      VerifyCode: "",
+      ConVerifyCode: "",
+      nationalData: self.$store.state.provinces,
+      Venue: "",
+      Province: "",
+      City: "",
+      District: "",
+      show: true,
+      count: "",
+      timer: null,
+      rememberPwd: false
+    };
+  },
+  watch: {
+    showLogin(val) {
+      if (val) {
+        // this.loginBox = val;
+        this.registerBox = val;
+        this.loginName = "";
+        this.loginPwd = "";
+        this.CompanyName = "";
+        this.Contacts = "";
+        this.Mobile = "";
+        this.Password = "";
+        this.ConfirmPassword = "";
+        this.VerifyCode = "";
+        this.ConVerifyCode = "";
+        this.Venue = "";
+        this.Province = "";
+        this.City = "";
+        this.District = "";
+      }
+    },
+    registerBox(val) {
+      if (!val) {
+        this.$emit("resetVal");
+      }
+    },
+    Mobile(v) {
+      if (!Number.isInteger(v)) {
+        this.Mobile = Number.parseInt(v) || "";
+      }
+    }
+  },
+  methods: {
+    venue(val, txt) {
+      this.Venue = txt.map(c => c.label).join("/");
+      this.Province = val[0] == undefined ? "" : val[0];
+      this.City = val[1] == undefined ? "" : val[1];
+      this.District = val[2] == undefined ? "" : val[2];
+    },
+    // 打开协议框
+    handleAgreement() {
+      this.agreementBox = true;
+    },
+    // 同意协议并立即注册
+    loginAgree() {
+      this.agreementBox = false;
+      this.single = true;
+    },
+    // 不同意
+    loginDisagree() {
+      this.agreementBox = false;
+      this.registerBox = true;
+      this.single = false;
+    },
+    // 获取验证码
+    OutVerifyCode() {
+      const self = this;
+      if (this.timer) {
+        this.$Message.warning("60m秒内不允许重复获取验证码！");
+        return false;
+      }
+      var testTel = /^1[345789]\d{9}$/;
+      if (!this.Mobile || !testTel.test(this.Mobile)) {
+        this.$Message.warning("请输入您的正确手机号码！");
+        return false;
+      }
+      var Num = "";
+      for (var i = 0; i < 4; i++) {
+        Num += Math.floor(Math.random() * 10);
+      }
+      this.ConVerifyCode = Num;
+
+      this.$http
+        .post(self.RegisterUrl + "/api/SendMessagesApi/SendSMS", {
+          Mobile: this.Mobile,
+          VerifyCode: Num
+        })
+        .then(function(rs) {
+          if (rs.message == "发送成功") {
+            self.getCode();
+          }
+          self.$Message.warning(rs.message);
+        });
+    },
+    ValidateControl() {
+      let obj = {
+        onClose: (() => {
+          this.modal_loading = false;
+        })
+      };
+      if (!this.CompanyName) {
+        this.$Message.warning({
+          content: "请输入公司全称！",
+          onClose: (() => {
+            this.modal_loading = false;
+          })
+        });
+        return false;
+      }
+      if (!this.Contacts) {
+        obj.content = "请输入联系人！";
+        this.$Message.warning(obj);
+        return false;
+      }
+      if (!this.Mobile) {
+        obj.content = "请输入手机号码！";
+        this.$Message.warning(obj);
+        return false;
+      }
+      if (!this.Password) {
+        obj.content = "请输入密码！";
+        this.$Message.warning(obj);
+        return false;
+      }
+      if (!this.ConfirmPassword) {
+        obj.content = "请确认密码！";
+        this.$Message.warning(obj);
+        return false;
+      }
+      if (!this.VerifyCode) {
+        obj.content = "请输入验证码！";
+        this.$Message.warning(obj);
+        return false;
+      }
+      if (this.Password.length < 6) {
+        obj.content = "密码长度至少6位！";
+        this.$Message.warning(obj);
+        return false;
+      }
+      if (this.Password.length >= 15) {
+        obj.content = "密码长度不能大于15位！";
+        this.$Message.warning(obj);
+        return false;
+      }
+      if (this.Password != this.ConfirmPassword) {
+        obj.content = "两次密码输入不一致！";
+        this.$Message.warning(obj);
+        return false;
+      }
+
+      if (this.VerifyCode != this.ConVerifyCode || !this.ConVerifyCode) {
+        obj.content = "请填写正确的验证码！";
+        this.$Message.warning(obj);
+        return false;
+      }
+
+      if (!this.single) {
+        obj.content = "请勾选已阅读并接受！";
+        this.$Message.warning(obj);
+        return false;
+      }
+      return true;
+    },
+    // 立即注册
+    Save() {
+      const self = this;
+      self.modal_loading = true;
+      if (this.ValidateControl()) {
+        setTimeout(() => {
+          this.$http
+            .post(self.RegisterUrl + "/api/CtaApiController/MemberRegist", {
+              CompanyName: this.CompanyName,
+              Contacts: this.Contacts,
+              Mobile: this.Mobile,
+              Password: this.Password,
+              Venue: this.Venue,
+              Province: this.Province,
+              City: this.City,
+              District: this.District
+            })
+            .then(function(rs) {
+              self.$Message.warning({
+                content: rs.message,
+                duration: 3
+              });
+              self.loginName = self.Mobile;
+              self.loginPwd = self.Password;
+              self.modal_loading = false;
+              self.loginBox = true;
+              self.registerBox = false;
+              self.$router.push({ path: "/index" });
+            });
+        }, 2000);   
+      }
+    },
+    getCode() {
+      const TIME_COUNT = 60;
+      if (!this.timer) {
+        this.count = TIME_COUNT;
+        this.show = false;
+        this.timer = setInterval(() => {
+          if (this.count > 0 && this.count <= TIME_COUNT) {
+            this.count--;
+          } else {
+            this.show = true;
+            clearInterval(this.timer);
+            this.timer = null;
+          }
+        }, 1000);
+      }
+    },
+    numberVf(evt) {
+      var self = this;
+
+      evt = evt ? evt : window.event;
+      if (
+        (evt.keyCode > 47 && evt.keyCode < 58) ||
+        evt.keyCode == 8 ||
+        evt.keyCode == 46 ||
+        (evt.keyCode >= 96 && evt.keyCode <= 105) ||
+        evt.keyCode == 8 ||
+        evt.keyCode == 46 ||
+        evt.keyCode == 37 ||
+        evt.keyCode == 39
+      ) {
+        if ((self.Mobile + "").length == 11) {
+          if (
+            (evt.keyCode > 47 && evt.keyCode < 58) ||
+            (evt.keyCode >= 96 && evt.keyCode <= 105)
+          ) {
+            window.event.returnValue = false;
+          } else {
+            window.event.returnValue = true;
+          }
+        } else {
+          window.event.returnValue = true;
+        }
+      } else {
+        window.event.returnValue = false;
+      }
+    }
+  }
+};
+</script>
+
+<style scoped>
+.inner-wrap {
+  margin: 20px auto;
+  background: #fff;
+}
+.register-content {
+  width: 600px;
+  padding: 0 0 30px;
+  margin: 0 auto;
+}
+
+.register-content h2 {
+  height: 74px;
+  line-height: 74px;
+  font-size: 24px;
+  color: #4aa8e5;
+  /* text-align: center; */
+  border-bottom: 1px solid #ccc;
+}
+
+.login-input {
+  height: 42px;
+  line-height: 42px;
+  border: 1px solid #bfbfbf;
+  position: relative;
+  padding-left: 50px;
+  margin-top: 24px;
+}
+
+.login-input .iconfont {
+  position: absolute;
+  left: 0;
+  width: 50px;
+  font-size: 30px;
+  color: #bfbfbf;
+  text-align: center;
+}
+
+.login-input input {
+  width: 100%;
+  height: 100%;
+  vertical-align: top;
+  font-size: 18px;
+}
+
+.login-select {
+  height: 18px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.login-select a {
+  float: right;
+  color: #f02d2d;
+}
+
+.register-code {
+  height: 42px;
+  line-height: 42px;
+  font-size: 20px;
+  margin-top: 24px;
+}
+
+.register-code a {
+  text-align: center;
+}
+
+.register-code input {
+  width: 138px;
+  height: 100%;
+  border: 1px solid #bfbfbf;
+  text-align: center;
+}
+
+.register-code a {
+  display: inline-block;
+  width: 138px;
+  color: #fff;
+  background: #4aa8e5;
+  margin-left: 20px;
+}
+
+.login-tips {
+  margin-top: 10px;
+  margin-bottom: -14px;
+}
+
+.login-tips p {
+  color: #dc322e;
+}
+
+.login-tips p::before {
+  margin-right: 10px;
+}
+.register-content .footer {
+  padding: 30px 0 0;
+}
+.register-content .footer button {
+  height: 50px;
+  font-size: 18px;
+  border-radius: 0;
+  background: #4aa8e5;
+}
+.register-content .footer p {
+  height: 24px;
+  line-height: 24px;
+  font-size: 14px;
+  color: #bfbfbf;
+  text-align: right;
+  margin-top: 18px;
+}
+.agreement-wrap .ivu-modal-header p {
+  height: 32px;
+  line-height: 32px;
+  font-size: 24px;
+  color: #4aa8e5;
+  text-align: center;
+}
+
+.agreement-content {
+  max-height: 480px;
+  padding: 20px;
+  border: 1px solid #bfbfbf;
+  border-radius: 8px;
+  overflow-y: auto;
+}
+
+.agreement-content p {
+  font-size: 14px;
+  line-height: 28px;
+  text-indent: 2rem;
+}
+
+.agreement-content p b {
+  display: block;
+  font-size: 16px;
+  padding-top: 10px;
+}
+
+.agreement-content p span {
+  padding-left: 2rem;
+}
+</style>
